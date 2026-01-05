@@ -1,0 +1,5 @@
+if git status --porcelain | grep -q "^[AM]"; then
+    npm run commitlint
+else
+    echo "please use [git add ] add some files"
+fi
