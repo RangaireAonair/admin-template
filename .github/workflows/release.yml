@@ -1,0 +1,45 @@
+name: Release Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseType:
+        required: true
+        type: choice
+        description: "releaseType"
+        options: [patch, minor, major, alpha, beta, rc]
+
+jobs:
+  test-before-release:
+    uses: ./.github/workflows/test.yml
+    with:
+      ref: refs/heads/main
+
+  release:
+    needs: [test-before-release]
+    runs-on: ubuntu-latest
+    if: ${{ needs.test-before-release.outputs.test_result == 'success' }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+
+      - name: Run release script
+        run: |
+          node scripts/release.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TYPE: ${{ inputs.releaseType }}
+
