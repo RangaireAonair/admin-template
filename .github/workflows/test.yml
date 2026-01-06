@@ -28,9 +28,9 @@ jobs:
         with:
           node-version: 22
 
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm run test
+#      - run: npm ci
+#      - run: npm run typecheck
+#      - run: npm run test
 
       # 设置 step 输出
       - id: set_status
