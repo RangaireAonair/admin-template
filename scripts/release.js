@@ -1,8 +1,14 @@
-const fs = require("fs");
-const path = require("path");
-const { execSync } = require("child_process");
-const core = require("@actions/core");
-const { GitHub, context } = require("@actions/github");
+import fs from "fs";
+import path from "path";
+import { execSync } from "child_process";
+import core from "@actions/core";
+import githubPkg from "@actions/github";
+import { fileURLToPath } from "url";
+
+const { GitHub, context } = githubPkg;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const releaseType = process.env.RELEASE_TYPE;
 const token = process.env.GITHUB_TOKEN;
@@ -29,7 +35,7 @@ function bumpVersion(version, type) {
   if (["major", "minor", "patch"].includes(type)) {
     if (type === "major") return `${v.major + 1}.0.0`;
     if (type === "minor") return `${v.major}.${v.minor + 1}.0`;
-    if (type === "patch") return `${v.major}.${v.minor}.${v.patch + 1}`;
+    return `${v.major}.${v.minor}.${v.patch + 1}`;
   }
 
   // pre-release
@@ -66,7 +72,7 @@ async function run() {
     // 创建 tag
     execSync(`git tag ${tag}`);
 
-    // GitHub Release
+    // 创建 GitHub Release
     const github = new GitHub(token);
     const { owner, repo } = context.repo;
 
@@ -79,7 +85,7 @@ async function run() {
       generate_release_notes: true,
     });
 
-    // push（最后一步）
+    // 最后 push
     execSync("git push origin HEAD");
     execSync("git push origin --tags");
 
@@ -91,7 +97,7 @@ async function run() {
     try {
       execSync("git reset --hard HEAD~1");
       execSync(`git tag -d ${tag}`);
-    } catch (_) {}
+    } catch {}
 
     core.setFailed("Release failed, rollback completed");
     process.exit(1);
