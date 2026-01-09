@@ -42,7 +42,7 @@ jobs:
 
       - name: Create PR to main
         run: |
-            node scripts/create-pr.js
+            node ./scripts/create-pr.js
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BASE_BRANCH: main
