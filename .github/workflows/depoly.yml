@@ -37,6 +37,8 @@ jobs:
           else
             vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
           fi
+      - name: install
+        run: npm ci
 
       - name: Create PR to main
         run: |
