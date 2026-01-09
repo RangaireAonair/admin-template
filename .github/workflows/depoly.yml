@@ -27,8 +27,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: refs/tags/latest # 或者使用 release workflow 输出的 tag
 
       - run: npm install -g vercel
 
@@ -39,6 +37,8 @@ jobs:
           else
             vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
           fi
+      - name: install
+        run: npm ci
 
       - name: Create PR to main
         run: |
