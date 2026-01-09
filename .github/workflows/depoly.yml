@@ -10,16 +10,19 @@ on:
         description: "environment"
         options: [staging, production]
 
+concurrency:
+  group: deploy-${{ github.ref }}  # 基于分支的并发组
+  cancel-in-progress: false        # 不取消正在运行的同组任务
+
 jobs:
   test-before-deploy:
     uses: ./.github/workflows/test.yml
-    with:
-      ref: refs/heads/main
+    secrets: inherit  # 继承 secrets
 
   deploy:
     needs: [test-before-deploy]
+    if: ${{ needs.test-before-deploy.outputs.test_result == 'success' && ( startsWith(github.ref_name, 'release') || startsWith(github.ref_name, 'hotfix')) }}
     runs-on: ubuntu-latest
-    if: ${{ needs.test-before-deploy.outputs.test_result == 'success' }}
     environment: ${{ github.event.inputs.environment }}
 
     steps:
@@ -36,5 +39,13 @@ jobs:
           else
             vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
           fi
+
+      - name: Create PR to main
+        run: |
+            node scripts/createPr.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: main
+          HEAD_BRANCH: ${{ github.ref_name }}   # ⭐ 动态分支
 
 

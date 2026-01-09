@@ -2,10 +2,6 @@ name: Test Workflow
 
 on:
   workflow_call:
-    inputs:
-      ref:
-        required: true
-        type: string
     outputs:
       test_result:
         description: 'Success or failure'
@@ -13,16 +9,12 @@ on:
 
 jobs:
   test:
-    # 🔐 只允许 main
-    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     outputs:
       test_result: ${{ steps.set_status.outputs.status }}  # job 输出
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.ref }}
 
       - uses: actions/setup-node@v4
         with:
