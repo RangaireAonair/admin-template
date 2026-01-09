@@ -43,7 +43,7 @@ jobs:
       - name: Create PR to main
         working-directory: ${{ github.workspace }}
         run: |
-            node ./scripts/create-pr.js
+            node ./scripts/createPr.js
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BASE_BRANCH: main
