@@ -46,7 +46,7 @@ jobs:
 
       - name: computed release type
         id: releaseType
-        run: node ./scripts/datermine-bump-type.js
+        run: node ./scripts/determine-bump-type.js
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
