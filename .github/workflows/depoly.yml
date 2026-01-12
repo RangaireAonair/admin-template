@@ -30,15 +30,12 @@ jobs:
 
     if: >
       needs.test-before-deploy.outputs.test_result == 'success' &&
-         (
-           github.event.inputs.environment == 'staging' ||
-           github.event.inputs.environment == 'production'
-         ) &&
-         (
-           startsWith(github.ref_name, 'feature/') ||
-           startsWith(github.ref_name, 'hotfix/') ||
-           startsWith(github.ref_name, 'release/')
-         )
+      github.event.inputs.environment == 'staging' &&
+      (
+        contains(github.ref_name, 'feature') ||
+        contains(github.ref_name, 'hotfix') ||
+        contains(github.ref_name, 'release')
+      )
 
     environment: staging
 
