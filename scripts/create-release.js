@@ -30,9 +30,6 @@ async function run() {
     if (!token) throw new Error("Missing GITHUB_TOKEN");
     if (!tagName) throw new Error("Get Version Error");
 
-    execSync("git add package.json");
-    execSync(`git commit -m "chore(release): ${tagName}"`);
-
     const octokit = github.getOctokit(token);
     const { owner, repo } = github.context.repo;
 
@@ -67,7 +64,6 @@ async function run() {
       generate_release_notes: true,
     });
     execSync(`git tag -f latest`);
-    execSync("git push origin HEAD");
     execSync("git push origin --tags --force");
 
     console.log("✅ Release completed successfully");
