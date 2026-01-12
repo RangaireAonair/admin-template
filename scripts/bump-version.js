@@ -97,7 +97,7 @@ async function run() {
     console.log(`Tag: ${tag}`);
     console.log(`Prerelease: ${isPrerelease}`);
 
-    core.setOutput("version", nextVersion);
+    core.setOutput("version", currentVersion);
     core.setOutput("is_prerelease", isPrerelease);
   } catch (err) {
     console.error(err);

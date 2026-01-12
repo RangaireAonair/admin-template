@@ -1,6 +1,5 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { execSync } from "child_process";
 
 async function run() {
   try {
@@ -10,9 +9,6 @@ async function run() {
 
     if (!token) throw new Error("Missing GITHUB_TOKEN");
     if (!tagName) throw new Error("Missing TAG_NAME");
-
-    execSync("git add package.json");
-    execSync(`git commit -m "chore(release): ${tagName}"`);
 
     const octokit = github.getOctokit(token);
     const { owner, repo } = github.context.repo;
@@ -66,11 +62,7 @@ async function run() {
       prerelease,
       generate_release_notes: true,
     });
-    execSync(`git tag -f latest`);
-    execSync("git push origin HEAD");
-    execSync("git push origin --tags --force");
 
-    console.log("✅ Release completed successfully");
     core.info(`🎉 Release created: ${release.data.html_url}`);
   } catch (err) {
     core.setFailed(`❌ Release failed: ${err.message}`);
