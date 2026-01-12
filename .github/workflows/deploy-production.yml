@@ -19,8 +19,8 @@ jobs:
     if: >
       needs.test-before-deploy.outputs.test_result == 'success' &&
       (
-        startsWith(github.ref_name, 'hotfix/') ||
-        startsWith(github.ref_name, 'release/')
+        startsWith(github.ref_name, 'hotfix') ||
+        startsWith(github.ref_name, 'release')
       )
 
     environment: production   # ⭐ 会自动触发 approval
