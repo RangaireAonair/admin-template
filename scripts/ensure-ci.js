@@ -6,11 +6,8 @@ try {
     encoding: "utf8",
   }).trim();
 
-  // 判断是否以 release/ 或 hotfix/ 开头
-  if (!branch.startsWith("release/") && !branch.startsWith("hotfix/")) {
-    console.error(
-      `❌ 当前分支 "${branch}" 不允许执行此操作，只允许 release/* 或 hotfix/* 分支`,
-    );
+  if (!branch.startsWith("feature")) {
+    console.error(`❌ 当前分支 "${branch}" 不允许执行此操作，只允许 feature`);
     process.exit(1); // 非零退出码表示失败
   }
 
