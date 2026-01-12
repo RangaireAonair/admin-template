@@ -1,0 +1,33 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test-before-deploy:
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+
+  deploy-production:
+    needs: [test-before-deploy]
+    runs-on: ubuntu-latest
+
+    if: >
+      needs.test-before-deploy.outputs.test_result == 'success' &&
+      (
+        startsWith(github.ref_name, 'hotfix/') ||
+        startsWith(github.ref_name, 'release/')
+      )
+
+    environment: production   # ⭐ 会自动触发 approval
+
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g vercel
+
+      - name: Deploy to PRODUCTION
+        run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
