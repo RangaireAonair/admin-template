@@ -1,4 +1,3 @@
-
 name: Deploy Workflow
 
 on:
@@ -7,45 +6,76 @@ on:
       environment:
         required: true
         type: choice
-        description: "environment"
+        description: "select a deploy environment"
         options: [staging, production]
+        default: staging
 
 concurrency:
-  group: deploy-${{ github.ref }}  # 基于分支的并发组
-  cancel-in-progress: false        # 不取消正在运行的同组任务
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 
 jobs:
   test-before-deploy:
     uses: ./.github/workflows/test.yml
-    secrets: inherit  # 继承 secrets
+    secrets: inherit
 
-  deploy:
+
+  # =========================
+  #   STAGING DEPLOY
+  # =========================
+  deploy-staging:
     needs: [test-before-deploy]
-    if: ${{ needs.test-before-deploy.outputs.test_result == 'success' && ( startsWith(github.ref_name, 'release') || startsWith(github.ref_name, 'hotfix')) }}
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
+
+    if: >
+      needs.test-before-deploy.outputs.test_result == 'success' &&
+      github.event.inputs.environment == 'staging' &&
+      (
+        contains(github.ref_name, 'feature') ||
+        contains(github.ref_name, 'hotfix') ||
+        contains(github.ref_name, 'release')
+      )
+
+    environment: staging
+
+    outputs:
+      deployed: ${{ steps.mark-success.outputs.deployed }}
 
     steps:
       - uses: actions/checkout@v4
-
       - run: npm install -g vercel
 
-      - name: Deploy
-        run: |
-          if [[ "${{ github.event.inputs.environment }}" == "staging" ]]; then
-            vercel deploy --yes --token=${{ secrets.VERCEL_TOKEN }}
-          else
-            vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
-          fi
-      - name: install
-        run: npm ci
+      - name: Deploy to STAGING
+        run: vercel deploy --yes --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Create PR to main
-        run: |
-            node scripts/createPr.js
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BASE_BRANCH: main
-          HEAD_BRANCH: ${{ github.ref_name }}   # ⭐ 动态分支
+      - run: npm ci
+
+      - name: mark success
+        id: mark-success
+        run: echo "deployed=1" >> $GITHUB_OUTPUT
 
 
+  # =========================
+  #   PRODUCTION DEPLOY
+  # =========================
+  deploy-production:
+    needs: [deploy-staging]  # ⭐ 必须 staging 成功
+    runs-on: ubuntu-latest
+
+    if: >
+      github.event.inputs.environment == 'production' &&
+      needs.deploy-staging.outputs.deployed == '1' &&
+      (
+        contains(github.ref_name, 'hotfix') ||
+        contains(github.ref_name, 'release')
+      )
+
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g vercel
+
+      - name: Deploy to PRODUCTION
+        run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}

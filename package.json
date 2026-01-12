@@ -1,12 +1,14 @@
 {
   "name": "admin-template",
   "private": true,
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
+    "release": "npx release-it",
+    "prerelease": "node ./scripts/ensure-ci.js",
     "commit": "cz",
     "lint": "prettier --write .",
     "commitlint": "commitlint --config commitlint.config.ts -e -V",
@@ -25,6 +27,7 @@
     "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
+    "auto-changelog": "^2.5.0",
     "commitizen": "^4.3.1",
     "cz-git": "^1.12.0",
     "husky": "^9.1.7",
@@ -41,6 +44,26 @@
   "config": {
     "commitizen": {
       "path": "cz-git"
+    }
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "preset": "angular",
+      "infile": "CHANGELOG.md"
+    }
+  },
+  "release-it": {
+    "$schema": "https://unpkg.com/release-it@18/schema/release-it.json",
+    "git": {
+      "commitMessage": "chore: release v${version}",
+      "requireCleanWorkingDir": true,
+      "requireUpstream": true,
+      "commit": true,
+      "tag": true,
+      "push": true
+    },
+    "hooks": {
+      "before:init": [""]
     }
   }
 }
