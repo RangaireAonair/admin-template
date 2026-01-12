@@ -63,7 +63,7 @@
       "push": true
     },
     "hooks": {
-      "before:init": [""]
+
     }
   }
 }
