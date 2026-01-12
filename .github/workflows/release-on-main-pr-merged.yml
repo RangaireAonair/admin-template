@@ -21,20 +21,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Detect hotfix
-        id: detect
-        run: |
-            if [[ "${{ github.event.pull_request.head.ref }}" == hotfix* ]]; then
-              echo "is_hotfix=true" >> $GITHUB_OUTPUT
-            else
-              echo "is_hotfix=false" >> $GITHUB_OUTPUT
-            fi
-
-      - name: Configure git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -44,25 +30,8 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: computed release type
-        id: releaseType
-        run: node ./scripts/determine-bump-type.js
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # 执行 bump 版本（你之前的 bump-version.js）
-      - name: Bump Version
-        id: bump
-        run: |
-          node ./scripts/bump-version.js
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TYPE: ${{ steps.releaseType.outputs.releaseType }}
-
       - name: Create Release
         run: node ./scripts/create-release.js
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG_NAME: v${{ steps.bump.outputs.version }}
-          IS_PRERELEASE: ${{ steps.bump.outputs.is_prerelease }} # true / false
 
