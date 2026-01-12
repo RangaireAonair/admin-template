@@ -1,14 +1,33 @@
+import fs from "fs";
+import path from "path";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
+
+/**
+ * 判断版本字符串是否包含指定的标记
+ * @param {string} version - 版本号字符串，例如 "1.0.0-alpha"
+ * @param {string[]} tags - 需要检测的关键字数组，例如 ["alpha", "beta", "rc"]
+ * @returns {boolean} 是否包含任意关键字
+ */
+function hasVersionTag(version, tags = ["alpha", "beta", "rc"]) {
+  if (!version) return false;
+
+  // 构造正则，例如 ["alpha","beta","rc"] => /alpha|beta|rc/i
+  const pattern = new RegExp(tags.join("|"), "i");
+  return pattern.test(version);
+}
 
 async function run() {
   try {
     const token = process.env.GITHUB_TOKEN;
-    const tagName = process.env.TAG_NAME;
-    const prerelease = String(process.env.IS_PRERELEASE || "false") === "true";
+    const pkgPath = path.resolve(process.cwd(), "package.json");
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+    const tagName = `v${pkg.version}`;
+
+    const prerelease = hasVersionTag(pkg.version);
 
     if (!token) throw new Error("Missing GITHUB_TOKEN");
-    if (!tagName) throw new Error("Missing TAG_NAME");
+    if (!tagName) throw new Error("Get Version Error");
 
     const octokit = github.getOctokit(token);
     const { owner, repo } = github.context.repo;
@@ -31,26 +50,7 @@ async function run() {
     }
 
     // -------------------------------
-    // 2️⃣ 不存在则创建 Tag ( lightweight )
-    // -------------------------------
-    if (!tagExists) {
-      core.info(`🏷️ Creating tag ${tagName}`);
-
-      // 获取当前 commit sha
-      const sha = github.context.sha;
-
-      await octokit.rest.git.createRef({
-        owner,
-        repo,
-        ref: `refs/tags/${tagName}`,
-        sha,
-      });
-
-      core.info("✅ Tag created");
-    }
-
-    // -------------------------------
-    // 3️⃣ 创建 Release
+    // 2️⃣  创建 Release
     // -------------------------------
     core.info(`🚀 Creating release ${tagName}`);
 
